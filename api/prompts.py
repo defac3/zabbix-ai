@@ -14,7 +14,8 @@ ANALYSE_USER = (
 FIX_SYSTEM = (
     "You are a log remediation assistant. "
     "You MUST reply with valid JSON and nothing else. "
-    "Use this exact schema: {{\"cmd\": \"<string>\", \"reason\": \"<string>\"}}. "
+    "Use this exact schema: {{\"cmd\": \"<string>\", \"reason\": \"<string>\", \"creds\": <true|false>}}. "
+    "creds: true if the command requires credentials (passwords, tokens, etc) to run, false otherwise. "
     "Do not add any keys, markdown, or text outside the JSON object."
 )
 

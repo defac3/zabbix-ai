@@ -43,8 +43,9 @@ async def fix(body: LogLinesRequest):
         data = await client.generate_json(
             system=FIX_SYSTEM,
             user=FIX_USER.format(lines=req),
-            required_keys=("cmd", "reason")
+            required_keys=("cmd", "reason", "creds"),
         )
     except ValueError as e:
         raise HTTPException(status_code=502, detail=str(e))
-    return FixResponse(cmd=data["cmd"], req=req, reason=data["reason"])
+    creds = data.get("creds") in (True, "true", "True", "1", 1)
+    return FixResponse(cmd=data["cmd"], req=req, reason=data["reason"], creds=creds)

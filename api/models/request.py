@@ -13,3 +13,4 @@ class FixResponse(BaseModel):
     cmd: str
     req: str
     reason: str
+    creds: bool = False
