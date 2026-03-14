@@ -1,5 +1,3 @@
-from const import OLLAMA_URL, OLLAMA_MODEL
-
 from contextlib import asynccontextmanager
 
 from aiohttp import ClientSession
