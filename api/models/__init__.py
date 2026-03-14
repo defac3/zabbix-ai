@@ -4,4 +4,4 @@ from .request import (
     FixResponse,
 )
 
-__all__ = ["LogLinesRequest", "HealthResponse", "AnalyseResponse", "FixResponse"]
+__all__ = ["LogLinesRequest", "AnalyseResponse", "FixResponse"]

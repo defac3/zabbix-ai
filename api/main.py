@@ -10,7 +10,7 @@ from prompts import (
 from models import LogLinesRequest, AnalyseResponse, FixResponse
 
 client = OllamaClient()
-app = FastAPI(docs_url=None, redoc_url=None)
+app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
 
 @app.get("/health",)
