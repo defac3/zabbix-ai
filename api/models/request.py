@@ -1,13 +1,15 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class LogLinesRequest(BaseModel):
     lines: list[str]
 
+class AnalyseResponse(BaseModel):
+    req: str
+    reason: str
 
-class AnalysisResponse(BaseModel):
-    analysis: str
 
-
-class SolutionResponse(BaseModel):
-    solution: str
+class FixResponse(BaseModel):
+    cmd: str
+    req: str
+    reason: str

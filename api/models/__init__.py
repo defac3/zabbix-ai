@@ -1,3 +1,7 @@
-from .request import LogLinesRequest, AnalysisResponse, SolutionResponse
+from .request import (
+    LogLinesRequest,
+    AnalyseResponse,
+    FixResponse,
+)
 
-__all__ = ["LogLinesRequest", "AnalysisResponse", "SolutionResponse"]
+__all__ = ["LogLinesRequest", "HealthResponse", "AnalyseResponse", "FixResponse"]
