@@ -12,8 +12,8 @@ from models import (
 )
 from const import OLLAMA_URL, OLLAMA_MODEL
 
-from typing import type_checked
-if type_checked:
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
     from typing import Optional, AsyncGenerator
 
 
