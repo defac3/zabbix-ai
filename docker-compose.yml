@@ -4,6 +4,8 @@ services:
       context: .
       dockerfile: api/Dockerfile
     user: "1000:1000"
+    expose:
+      - "8443"
     ports:
       - "8443:8443"
     environment:
@@ -18,11 +20,12 @@ services:
         limits:
           cpus: "2"
           memory: 4G
-          pids: 256
         reservations:
           memory: 2G
     ulimits:
       nofile: 1024
+    networks:
+      - zabbix_net
 
   webhook:
     build:
@@ -36,13 +39,15 @@ services:
       - ./certs:/app/certs:ro
     environment:
       API_URL: "https://api:8443"
-      ZABBIX_URL: "http://zabbix-web:80"
+      ZABBIX_URL: "http://zabbix-web:8080"
       ZABBIX_USER: "Admin"
       ZABBIX_PASSWORD: "zabbix"
       ZABBIX_API_TOKEN: ""
       ZABBIX_SCRIPT_ID: ""
     depends_on:
       - api
+    networks:
+      - zabbix_net
 
   postgres:
     image: postgres:latest
@@ -52,6 +57,10 @@ services:
       POSTGRES_DB: zabbix
     volumes:
       - zabbix_pgdata:/var/lib/postgresql
+    expose:
+      - "5432"
+    networks:
+      - zabbix_net
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U zabbix"]
       interval: 5s
@@ -68,22 +77,37 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    expose:
+      - "10051"
     ports:
       - "10051:10051"
+    extra_hosts:
+      - "zabbix-agent-debian:10.88.77.10"
+      - "zabbix-agent-ubuntu:10.88.77.11"
+      - "zabbix-agent-rocky:10.88.77.12"
+    networks:
+      zabbix_net:
+        ipv4_address: 10.88.77.20
 
   zabbix-web:
     image: zabbix/zabbix-web-nginx-pgsql:latest
     environment:
       ZBX_SERVER_HOST: zabbix-server
+      DB_SERVER_HOST: postgres
       ZBX_DB_HOST: postgres
       POSTGRES_USER: zabbix
       POSTGRES_PASSWORD: zabbix
       POSTGRES_DB: zabbix
+      PHP_TZ: "UTC"
     depends_on:
       - zabbix-server
       - postgres
+    expose:
+      - "8080"
     ports:
       - "8080:8080"
+    networks:
+      - zabbix_net
 
   zabbix-agent-debian:
     build:
@@ -91,11 +115,15 @@ services:
       dockerfile: zabbix-agent/Dockerfile
       args:
         BASE_IMAGE: debian:latest
+    container_name: zabbix-agent-debian
     hostname: agent-debian
     environment:
       ZBX_HOSTNAME: agent-debian
-    depends_on:
-      - zabbix-server
+    expose:
+      - "10050"
+    networks:
+      zabbix_net:
+        ipv4_address: 10.88.77.10
 
   zabbix-agent-ubuntu:
     build:
@@ -103,11 +131,15 @@ services:
       dockerfile: zabbix-agent/Dockerfile
       args:
         BASE_IMAGE: ubuntu:latest
+    container_name: zabbix-agent-ubuntu
     hostname: agent-ubuntu
     environment:
       ZBX_HOSTNAME: agent-ubuntu
-    depends_on:
-      - zabbix-server
+    expose:
+      - "10050"
+    networks:
+      zabbix_net:
+        ipv4_address: 10.88.77.11
 
   zabbix-agent-rocky:
     build:
@@ -115,11 +147,22 @@ services:
       dockerfile: zabbix-agent/Dockerfile
       args:
         BASE_IMAGE: almalinux:latest
+    container_name: zabbix-agent-rocky
     hostname: agent-rocky
     environment:
       ZBX_HOSTNAME: agent-rocky
-    depends_on:
-      - zabbix-server
+    expose:
+      - "10050"
+    networks:
+      zabbix_net:
+        ipv4_address: 10.88.77.12
+
+networks:
+  zabbix_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.88.77.0/24
 
 volumes:
   zabbix_pgdata: {}
