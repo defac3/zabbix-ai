@@ -51,7 +51,7 @@ services:
       POSTGRES_PASSWORD: zabbix
       POSTGRES_DB: zabbix
     volumes:
-      - zabbix_pgdata:/var/lib/postgresql/data
+      - zabbix_pgdata:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U zabbix"]
       interval: 5s
