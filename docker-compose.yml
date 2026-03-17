@@ -41,8 +41,8 @@ services:
       ZABBIX_PASSWORD: "zabbix"
       ZABBIX_API_TOKEN: ""
       ZABBIX_SCRIPT_ID: ""
- #   depends_on:
-  #    - api
+    depends_on:
+      - api
 
   postgres:
     image: postgres:latest
