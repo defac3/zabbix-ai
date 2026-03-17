@@ -72,7 +72,7 @@ def main() -> None:
     app = Application()
     app.router.add_post("/", handle_webhook)
     app.router.add_post("/webhook", handle_webhook)
-    run_app(app, host="0.0.0.0", port=9000)
+    run_app(app, host="127.0.0.1", port=9000)
 
 if __name__ == "__main__":
     main()

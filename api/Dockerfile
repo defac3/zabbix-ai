@@ -3,7 +3,7 @@ USER root
 
 RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories
 
-RUN apk update && apk add --no-cache python3 curl nginx ollama
+RUN apk update && apk add --no-cache python3 curl nginx gettext ollama
 
 RUN addgroup -g 1000 -S app && adduser -u 1000 -S -G app -h /app -D app
 
