@@ -28,8 +28,12 @@ services:
     build:
       context: .
       dockerfile: webhook/Dockerfile
+    expose:
+      - "9443"
     ports:
-      - "9000:9000"
+      - "9443:9443"
+    volumes:
+      - ./certs:/app/certs:ro
     environment:
       API_URL: "https://api:8443"
       ZABBIX_URL: "http://zabbix-web:80"
@@ -37,8 +41,8 @@ services:
       ZABBIX_PASSWORD: "zabbix"
       ZABBIX_API_TOKEN: ""
       ZABBIX_SCRIPT_ID: ""
-    depends_on:
-      - api
+ #   depends_on:
+  #    - api
 
   postgres:
     image: postgres:latest
@@ -110,7 +114,7 @@ services:
       context: .
       dockerfile: zabbix-agent/Dockerfile
       args:
-        BASE_IMAGE: rockylinux:latest
+        BASE_IMAGE: almalinux:latest
     hostname: agent-rocky
     environment:
       ZBX_HOSTNAME: agent-rocky
