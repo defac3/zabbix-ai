@@ -23,3 +23,99 @@ services:
           memory: 2G
     ulimits:
       nofile: 1024
+
+  webhook:
+    build:
+      context: .
+      dockerfile: webhook/Dockerfile
+    ports:
+      - "9000:9000"
+    environment:
+      API_URL: "https://api:8443"
+      ZABBIX_URL: "http://zabbix-web:80"
+      ZABBIX_USER: "Admin"
+      ZABBIX_PASSWORD: "zabbix"
+      ZABBIX_API_TOKEN: ""
+      ZABBIX_SCRIPT_ID: ""
+    depends_on:
+      - api
+
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix
+      POSTGRES_DB: zabbix
+    volumes:
+      - zabbix_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zabbix"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  zabbix-server:
+    image: zabbix/zabbix-server-pgsql:latest
+    environment:
+      DB_SERVER_HOST: postgres
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix
+      POSTGRES_DB: zabbix
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "10051:10051"
+
+  zabbix-web:
+    image: zabbix/zabbix-web-nginx-pgsql:latest
+    environment:
+      ZBX_SERVER_HOST: zabbix-server
+      ZBX_DB_HOST: postgres
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix
+      POSTGRES_DB: zabbix
+    depends_on:
+      - zabbix-server
+      - postgres
+    ports:
+      - "8080:8080"
+
+  zabbix-agent-debian:
+    build:
+      context: .
+      dockerfile: zabbix-agent/Dockerfile
+      args:
+        BASE_IMAGE: debian:latest
+    hostname: agent-debian
+    environment:
+      ZBX_HOSTNAME: agent-debian
+    depends_on:
+      - zabbix-server
+
+  zabbix-agent-ubuntu:
+    build:
+      context: .
+      dockerfile: zabbix-agent/Dockerfile
+      args:
+        BASE_IMAGE: ubuntu:latest
+    hostname: agent-ubuntu
+    environment:
+      ZBX_HOSTNAME: agent-ubuntu
+    depends_on:
+      - zabbix-server
+
+  zabbix-agent-rocky:
+    build:
+      context: .
+      dockerfile: zabbix-agent/Dockerfile
+      args:
+        BASE_IMAGE: rockylinux:latest
+    hostname: agent-rocky
+    environment:
+      ZBX_HOSTNAME: agent-rocky
+    depends_on:
+      - zabbix-server
+
+volumes:
+  zabbix_pgdata: {}
