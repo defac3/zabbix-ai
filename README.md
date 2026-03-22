@@ -26,7 +26,49 @@ docker compose up --build -d
 | Webhook             | webhook             |     DHCP     | 9443  |
 | PostgreSQL          | postgres            |     DHCP     | 5432  |
 
+## Webhook pipeline target
+
+```mermaid
+flowchart TB
+  subgraph zabbix_server["zabbix-server"]
+    ZS[media / action → HTTP JSON]
+  end
+
+  subgraph webhook["webhook"]
+    WH[main.py: POST /]
+    MW1[middleware до AI]
+    RETRY["main.py ↔ api, ≤ const.py:ATTEMPTS_AI"]
+    MW2[middleware после AI]
+    QC{creds == true?}
+    RJ[Fail]
+  end
+
+  subgraph api["api"]
+    FIX["/api/fix + Ollama"]
+  end
+
+  subgraph zabbix_web["zabbix-web"]
+    SCR[script.execute]
+    HP_OK["history.push: ok"]
+    HP_FAIL["history.push: failed"]
+  end
+
+  ZS --> WH --> MW1 --> RETRY
+  RETRY <-->|повтор| FIX
+  RETRY -->|JSON ок| QC
+  RETRY -->|лимит попыток| HP_FAIL
+  QC -->|да| RJ
+  QC -->|нет| MW2
+  MW2 -->|cmd no ok| RJ
+  MW2 -->|cmd ок| SCR
+  SCR -->|успех| HP_OK
+  SCR -->|ошибка| HP_FAIL
+  RJ --> HP_FAIL
+```
+
 ## TODO
 
 - [ ] middleware request/response AI
 - [ ] Webhook/custom plugin по UNIX socket для получения ошибок с агентов Zabbix
+- [ ] Лимит попыток к LLM: `webhook/const.py:ATTEMPTS_AI` (env `ATTEMPTS_AI`) и реализация цикла в `webhook/main.py` 
+- [ ] Network middleware: валидация ip.src для webhook
